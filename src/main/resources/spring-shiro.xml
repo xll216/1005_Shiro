@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--SSM整合Shiro时的配置-->
+
+    <!--1,自定义Realm-->
+    <bean id="customRealm"
+          class="com.ssm.shiro.CustomRealm"/>
+
+    <!--2,配置安全管理器对象-->
+    <bean id="securityManager"
+          class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <!--引入自定义Realm-->
+        <property name="realm" ref="customRealm"/>
+    </bean>
+
+
+    <!--开始shiro生命周期自理-->
+    <bean id="lifecycleBeanPostProcessor"
+          class="org.apache.shiro.spring.LifecycleBeanPostProcessor"/>
+
+    <!--开启shiro注解-->
+    <bean id="autoProxyCreator"
+          class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"
+          depends-on="lifecycleBeanPostProcessor"/>
+
+    <bean id="sourceAdvisor"
+          class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+        <property name="securityManager" ref="securityManager"/>
+    </bean>
+
+    <!--Shiro过滤器-->
+    <bean id="shiroFilter"
+          class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+        <!--配置安全管理器-->
+        <property name="securityManager"
+                  ref="securityManager"/>
+
+        <!--认证失败时的跳转页面-->
+        <property name="loginUrl" value="/login"/>
+
+        <!--授权失败时的跳转页面-->
+        <property name="unauthorizedUrl"
+                  value="/unauthor"/>
+
+        <!--配置过滤规则-->
+        <property name="filterChainDefinitions">
+            <value>
+                <!--定义匿名访问的路径-->
+                /login=anon
+                /index=anon
+
+                <!--静态资源匿名访问-->
+                /scripts/*=anon
+                /js/*=anon
+                /css/*=anon
+                /imgs/*=anon
+
+                <!--定义角色检查的路径-->
+                <!--/user/home=roles[部门经理]-->
+
+                <!--定义需要认证的路径，例如：
+                /user/home时要进行身份认证
+                -->
+                /user/*=authc
+
+            </value>
+        </property>
+
+    </bean>
+
+</beans>
